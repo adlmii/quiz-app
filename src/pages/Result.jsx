@@ -2,15 +2,17 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuiz } from "../context/QuizContext";
 import { 
-  Check, 
-  X, 
+  CheckCircle2, 
+  XCircle, 
   RefreshCw, 
   LogOut, 
-  ListChecks, 
-  SmilePlus,
-  Smile,
-  Meh,
-  Frown
+  Trophy, 
+  Award,
+  Star,
+  Frown,
+  ListChecks,
+  Share2,
+  BarChart3
 } from "lucide-react";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
@@ -18,171 +20,169 @@ export default function Result() {
   const { user, quizState, logout, startQuiz } = useQuiz();
   const navigate = useNavigate();
 
-  useDocumentTitle(`Result: ${quizState.score} Correct | DOT Quiz`);
-
-  // Proteksi Halaman
-  useEffect(() => {
-    if (!user) {
-      navigate("/");
-    } else if (!quizState.isFinished) {
-      navigate("/quiz");
-    }
-  }, [user, quizState.isFinished, navigate]);
-
-  // --- LOGIKA PERHITUNGAN ---
+  // --- LOGIKA HITUNGAN ---
   const totalQuestions = quizState.questions.length;
-  const totalAnswered = quizState.answers.length;
+  const totalAnswered = quizState.answers.length; 
   const correctAnswers = quizState.score;
-  const wrongAnswers = totalAnswered - correctAnswers;
+  const wrongAnswers = totalAnswered - correctAnswers; 
   
   const scorePercentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
 
-  // Konfigurasi Tampilan
-  const getResultConfig = () => {
-    if (scorePercentage === 100) {
-      return {
-        title: "Sempurna!",
-        desc: "Luar biasa! Kamu menjawab semua dengan benar.",
-        color: "text-emerald-600",
-        bgIcon: "bg-emerald-100",
-        icon: <SmilePlus className="text-emerald-600 w-10 h-10 md:w-14 md:h-14" />, // Icon responsif
-      };
-    } else if (scorePercentage >= 80) {
-      return {
-        title: "Sangat Bagus!",
-        desc: "Hasil kerjamu sangat memuaskan.",
-        color: "text-teal-600",
-        bgIcon: "bg-teal-100",
-        icon: <Smile className="text-teal-600 w-10 h-10 md:w-14 md:h-14" />,
-      };
-    } else if (scorePercentage >= 50) {
-      return {
-        title: "Cukup Baik",
-        desc: "Kamu lulus, tapi masih bisa ditingkatkan.",
-        color: "text-blue-600",
-        bgIcon: "bg-blue-100",
-        icon: <Meh className="text-blue-600 w-10 h-10 md:w-14 md:h-14" />,
-      };
-    } else {
-      return {
-        title: "Perlu Latihan",
-        desc: "Jangan menyerah. Coba lagi ya!",
-        color: "text-red-600",
-        bgIcon: "bg-red-100",
-        icon: <Frown className="text-red-600 w-10 h-10 md:w-14 md:h-14" />,
-      };
-    }
+  useDocumentTitle(`Hasil: ${scorePercentage}% | DOT Quiz`);
+
+  useEffect(() => {
+    if (!user) navigate("/");
+    else if (!quizState.isFinished) navigate("/quiz");
+  }, [user, quizState.isFinished, navigate]);
+
+  // Konfigurasi UI (Warna & Icon)
+  const getResultUI = () => {
+    if (scorePercentage === 100) return {
+      title: "Sempurna!", 
+      desc: "Luar biasa! Tidak ada celah kesalahan sedikitpun.", 
+      icon: <Trophy className="h-24 w-24 md:h-32 md:w-32 text-yellow-300 drop-shadow-2xl animate-bounce" />,
+      bgGradient: "from-emerald-600 to-teal-800",
+      accentColor: "text-emerald-600"
+    };
+    if (scorePercentage >= 80) return {
+      title: "Sangat Bagus!", 
+      desc: "Kamu hampir menguasai semua materi.", 
+      icon: <Award className="h-24 w-24 md:h-32 md:w-32 text-emerald-200 drop-shadow-xl" />,
+      bgGradient: "from-teal-500 to-emerald-700",
+      accentColor: "text-teal-600"
+    };
+    if (scorePercentage >= 60) return {
+      title: "Cukup Baik", 
+      desc: "Hasil yang lumayan, tapi masih bisa ditingkatkan.", 
+      icon: <Star className="h-24 w-24 md:h-32 md:w-32 text-yellow-200 drop-shadow-lg" />,
+      bgGradient: "from-blue-500 to-indigo-700",
+      accentColor: "text-blue-600"
+    };
+    return {
+      title: "Perlu Latihan", 
+      desc: "Jangan patah semangat, coba lagi ya!", 
+      icon: <Frown className="h-24 w-24 md:h-32 md:w-32 text-red-200 drop-shadow-lg" />,
+      bgGradient: "from-red-500 to-orange-700",
+      accentColor: "text-red-600"
+    };
   };
 
-  const config = getResultConfig();
-
-  const handlePlayAgain = async () => {
-    await startQuiz();
-    navigate("/quiz");
-  };
+  const ui = getResultUI();
 
   const handleLogout = () => {
-    if (window.confirm("Yakin mau mengakhiri sesi ini?")) {
-      logout();
-      navigate("/");
-    }
+    if(window.confirm("Keluar dari sesi ini?")) logout();
   };
 
+  const handlePlayAgain = () => {
+    startQuiz();
+    navigate("/quiz");
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8 md:py-12">
-      {/* CONTAINER UTAMA: 
-         - Mobile: max-w-md (standar)
-         - Desktop: max-w-lg (lebih lebar biar lega)
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8 font-sans">
+      
+      {/* CONTAINER UTAMA 
+          - Mobile: Flex Column (Atas Bawah)
+          - Desktop: Flex Row (Kiri Kanan) + Lebar Maksimal (max-w-5xl)
       */}
-      <div className="w-full max-w-md md:max-w-lg animate-fade-in rounded-3xl bg-white p-6 md:p-10 shadow-xl border-t-8 border-emerald-500">
+      <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-4xl bg-white shadow-2xl ring-1 ring-black/5 transition-all md:max-w-5xl md:flex-row md:min-h-125 animate-fade-in">
         
-        {/* Header Section */}
-        <div className="flex flex-col items-center text-center mb-8 md:mb-10">
-          {/* Bubble Icon: Ukuran menyesuaikan layar */}
-          <div className={`mb-4 flex h-20 w-20 md:h-28 md:w-28 items-center justify-center rounded-full ${config.bgIcon} shadow-sm transition-all`}>
-            {config.icon}
+        {/* =======================
+            SEKSI 1: VISUAL (KIRI di Desktop / ATAS di Mobile)
+            ======================= */}
+        <div className={`relative flex flex-col items-center justify-center p-8 text-center text-white md:w-5/12 md:p-12 bg-linear-to-br ${ui.bgGradient}`}>
+          
+          {/* Dekorasi Background Abstrak */}
+          <div className="absolute top-0 left-0 h-40 w-40 -translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 h-56 w-56 translate-x-10 translate-y-10 rounded-full bg-black/10 blur-3xl"></div>
+          
+          {/* Icon Utama */}
+          <div className="relative z-10 mb-6 animate-float">
+            {ui.icon}
           </div>
-          
-          {/* Typography Responsif */}
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">{scorePercentage}%</h1>
-          <h2 className={`text-xl md:text-2xl font-bold ${config.color} mt-2`}>{config.title}</h2>
-          <p className="mt-2 text-sm md:text-base text-gray-500 leading-relaxed max-w-xs mx-auto">
-            {config.desc}
-          </p>
-        </div>
 
-        {/* Progress Bar */}
-        <div className="w-full h-3 md:h-4 bg-gray-100 rounded-full mb-8 md:mb-10 overflow-hidden shadow-inner">
-           <div 
-             className={`h-full rounded-full transition-all duration-1000 ${scorePercentage >= 60 ? 'bg-emerald-500' : 'bg-red-500'}`} 
-             style={{ width: `${scorePercentage}%` }}
-           ></div>
-        </div>
-
-        {/* --- STATISTIK GRID (OPTIMIZED) --- */}
-        <div className="grid grid-cols-3 gap-3 md:gap-6 mb-8 md:mb-10">
-          
-          {/* 1. DIJAWAB */}
-          <div className="flex flex-col items-center justify-center rounded-2xl bg-blue-50 p-3 md:p-6 border border-blue-100">
-            {/* Icon Bubble */}
-            <div className="mb-2 md:mb-3 flex h-8 w-8 md:h-12 md:w-12 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm">
-              <ListChecks className="w-4 h-4 md:w-6 md:h-6" />
+          {/* Skor Persentase */}
+          <div className="relative z-10">
+            <h1 className="text-6xl font-black tracking-tighter md:text-7xl drop-shadow-sm">
+              {scorePercentage}%
+            </h1>
+            <div className="mt-2 inline-block rounded-full bg-white/20 px-4 py-1 text-sm font-medium backdrop-blur-sm border border-white/10">
+              Total Score
             </div>
-            {/* Angka Besar */}
-            <p className="text-xl md:text-3xl font-black text-gray-800">
-              {totalAnswered}<span className="text-xs md:text-sm font-medium text-gray-400">/{totalQuestions}</span>
+          </div>
+        </div>
+
+        {/* =======================
+            SEKSI 2: STATS & ACTION (KANAN di Desktop / BAWAH di Mobile)
+            ======================= */}
+        <div className="flex flex-col justify-center bg-white p-6 md:w-7/12 md:p-12">
+          
+          <div className="mb-8 text-center md:text-left">
+            <h2 className={`text-3xl font-bold ${ui.accentColor} mb-2`}>{ui.title}</h2>
+            <p className="text-gray-500 text-lg leading-relaxed">{ui.desc}</p>
+          </div>
+
+          {/* GRID STATISTIK */}
+          <div className="mb-10 grid grid-cols-3 gap-3 md:gap-6">
+            
+            {/* 1. Total Dijawab */}
+            <div className="group flex flex-col items-center justify-center rounded-2xl bg-slate-50 p-4 border border-slate-100 transition-all hover:bg-slate-100 hover:shadow-md hover:-translate-y-1">
+              <div className="mb-2 rounded-full bg-white p-2 shadow-sm">
+                <BarChart3 className="h-5 w-5 text-slate-500" />
+              </div>
+              <span className="text-2xl font-black text-slate-800">
+                {totalAnswered}<span className="text-xs font-medium text-slate-400">/{totalQuestions}</span>
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Dijawab</span>
+            </div>
+
+            {/* 2. Benar */}
+            <div className="group flex flex-col items-center justify-center rounded-2xl bg-emerald-50 p-4 border border-emerald-100 transition-all hover:bg-emerald-100 hover:shadow-md hover:-translate-y-1">
+              <div className="mb-2 rounded-full bg-white p-2 shadow-sm">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              </div>
+              <span className="text-2xl font-black text-emerald-700">{correctAnswers}</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mt-1">Benar</span>
+            </div>
+
+            {/* 3. Salah */}
+            <div className="group flex flex-col items-center justify-center rounded-2xl bg-rose-50 p-4 border border-rose-100 transition-all hover:bg-rose-100 hover:shadow-md hover:-translate-y-1">
+              <div className="mb-2 rounded-full bg-white p-2 shadow-sm">
+                <XCircle className="h-5 w-5 text-rose-500" />
+              </div>
+              <span className="text-2xl font-black text-rose-600">{wrongAnswers}</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-rose-500 mt-1">Salah</span>
+            </div>
+
+          </div>
+
+          {/* TOMBOL AKSI */}
+          <div className="flex flex-col gap-3 sm:flex-row md:gap-4">
+            <button
+              onClick={handlePlayAgain}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-900 py-4 px-6 font-bold text-white shadow-xl shadow-gray-900/10 transition-all hover:bg-gray-800 hover:shadow-gray-900/20 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+            >
+              <RefreshCw size={20} className="transition-transform group-hover:rotate-180" />
+              <span>Main Lagi</span>
+            </button>
+            
+            <button
+              onClick={handleLogout}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-gray-100 bg-white py-4 px-6 font-bold text-gray-500 transition-all hover:border-rose-100 hover:bg-rose-50 hover:text-rose-600 active:scale-[0.98]"
+            >
+              <LogOut size={20} />
+              <span>Selesai</span>
+            </button>
+          </div>
+
+          {/* User ID Kecil */}
+          <div className="mt-8 text-center md:text-left">
+            <p className="text-xs text-gray-400">
+              Player ID: <span className="font-mono text-gray-600">{user?.name}</span>
             </p>
-            {/* Label */}
-            <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-blue-500 mt-1">Jawab</p>
-          </div>
-
-          {/* 2. BENAR */}
-          <div className="flex flex-col items-center justify-center rounded-2xl bg-emerald-50 p-3 md:p-6 border border-emerald-100">
-            <div className="mb-2 md:mb-3 flex h-8 w-8 md:h-12 md:w-12 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm">
-              <Check className="w-4 h-4 md:w-6 md:h-6" strokeWidth={3} />
-            </div>
-            <p className="text-xl md:text-3xl font-black text-emerald-700">{correctAnswers}</p>
-            <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-emerald-600 mt-1">Benar</p>
-          </div>
-
-          {/* 3. SALAH */}
-          <div className="flex flex-col items-center justify-center rounded-2xl bg-red-50 p-3 md:p-6 border border-red-100">
-            <div className="mb-2 md:mb-3 flex h-8 w-8 md:h-12 md:w-12 items-center justify-center rounded-full bg-white text-red-500 shadow-sm">
-              <X className="w-4 h-4 md:w-6 md:h-6" strokeWidth={3} />
-            </div>
-            <p className="text-xl md:text-3xl font-black text-red-600">{wrongAnswers}</p>
-            <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-red-500 mt-1">Salah</p>
           </div>
 
         </div>
-        {/* --- END STATISTIK GRID --- */}
-
-        {/* Action Buttons */}
-        <div className="space-y-3 md:space-y-4">
-          <button
-            onClick={handlePlayAgain}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 md:py-4 font-bold text-white transition hover:bg-emerald-700 active:scale-[0.98] shadow-lg shadow-emerald-200"
-          >
-            <RefreshCw className="w-5 h-5 md:w-6 md:h-6" />
-            <span className="text-sm md:text-base">Coba Lagi</span>
-          </button>
-          
-          <button
-            onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-gray-100 bg-white py-3.5 md:py-4 font-bold text-gray-500 transition hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300"
-          >
-            <LogOut className="w-5 h-5 md:w-6 md:h-6" />
-            <span className="text-sm md:text-base">Selesai & Keluar</span>
-          </button>
-        </div>
-
-        {/* Footer Info */}
-        <div className="mt-8 text-center">
-           <p className="text-xs md:text-sm text-gray-400">
-              User: <span className="font-semibold text-gray-600">{user?.name}</span>
-           </p>
-        </div>
-
       </div>
     </div>
   );

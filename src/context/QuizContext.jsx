@@ -16,28 +16,24 @@ export const QuizProvider = ({ children }) => {
     currentIndex: 0,
     score: 0,
     answers: [], 
-    timeLeft: 60, // 60 detik total waktu
+    timeLeft: 60, 
     isFinished: false,
-    status: 'idle', // idle | playing | finished
+    status: 'idle', 
   });
 
-  // 1. Load Data dari LocalStorage saat App dibuka (Fitur Resume)
   useEffect(() => {
     const savedUser = localStorage.getItem("quizUser");
     const savedQuiz = localStorage.getItem("quizState");
-
     if (savedUser) setUser(JSON.parse(savedUser));
     if (savedQuiz) setQuizState(JSON.parse(savedQuiz));
   }, []);
 
-  // 2. Auto-Save ke LocalStorage setiap kali state berubah
   useEffect(() => {
     if (quizState.status !== 'idle') {
       localStorage.setItem("quizState", JSON.stringify(quizState));
     }
   }, [quizState]);
 
-  // 3. Timer Logic
   useEffect(() => {
     if (quizState.status === 'playing' && quizState.timeLeft > 0) {
       const timer = setInterval(() => {
@@ -45,33 +41,39 @@ export const QuizProvider = ({ children }) => {
       }, 1000);
       return () => clearInterval(timer);
     } else if (quizState.timeLeft === 0 && quizState.status === 'playing') {
-      finishQuiz(); // Waktu habis
+      finishQuiz();
     }
   }, [quizState.timeLeft, quizState.status]);
 
-  // ACTION: Start Quiz (Orchestrator)
+  // --- BAGIAN YANG DIPERBAIKI ---
   const startQuiz = async () => {
-    // Cek 1: Kalau sudah ada soal aktif (Resume), jangan fetch ulang
+    // 1. Cek Resume (kalau soal ada & belum selesai, jangan reset)
     if (quizState.questions.length > 0 && !quizState.isFinished) return;
 
-    // Cek 2: Kalau sedang fetching, berhenti di sini
     if (isFetchingRef.current) return;
 
-    // Mulai Fetching
     isFetchingRef.current = true; 
     setLoading(true);
     setError(null);
 
+    // FIX: Reset status SEGERA agar tidak mental balik ke Result page
+    setQuizState(prev => ({ 
+      ...prev, 
+      isFinished: false, 
+      score: 0, 
+      answers: [],
+      currentIndex: 0 
+    }));
+
     try {
       await fetchQuestions();
     } catch (err) {
-      console.warn("Percobaan pertama gagal, mencoba lagi dalam 2 detik...");
-      // Auto-Retry Logic (Coba sekali lagi)
+      console.warn("Retrying fetch...");
       setTimeout(async () => {
         try {
           await fetchQuestions();
         } catch (retryErr) {
-          setError("Gagal mengambil soal. Koneksi tidak stabil atau API sibuk.");
+          setError("Gagal mengambil soal. Cek koneksi internetmu.");
           setLoading(false);
           isFetchingRef.current = false;
         }
@@ -79,19 +81,15 @@ export const QuizProvider = ({ children }) => {
     }
   };
 
-  // Internal Helper: Panggil Service & Format Data
   const fetchQuestions = async () => {
-    // Panggil Service API (Logic Axios ada di services/api.js)
     const rawQuestions = await getQuestions();
 
-    // Format data agar mudah dipakai di UI
     const formattedQuestions = rawQuestions.map((q) => ({
       question: q.question,
       correct_answer: q.correct_answer,
       options: shuffleArray([q.correct_answer, ...q.incorrect_answers]),
     }));
 
-    // Update State
     setQuizState({
       questions: formattedQuestions,
       currentIndex: 0,
@@ -102,12 +100,10 @@ export const QuizProvider = ({ children }) => {
       status: 'playing',
     });
     
-    // Selesai
     setLoading(false);
     isFetchingRef.current = false;
   };
 
-  // ACTION: Jawab Soal
   const answerQuestion = (selectedOption) => {
     const currentQ = quizState.questions[quizState.currentIndex];
     const isCorrect = selectedOption === currentQ.correct_answer;
@@ -132,19 +128,16 @@ export const QuizProvider = ({ children }) => {
     });
   };
 
-  // ACTION: Finish Manual (misal Waktu Habis)
   const finishQuiz = () => {
     setQuizState((prev) => ({ ...prev, isFinished: true, status: 'finished' }));
   };
 
-  // ACTION: Login
   const login = (name) => {
     const userData = { name };
     setUser(userData);
     localStorage.setItem("quizUser", JSON.stringify(userData));
   };
 
-  // ACTION: Logout / Reset Total
   const logout = () => {
     setUser(null);
     setQuizState({ 

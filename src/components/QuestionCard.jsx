@@ -1,6 +1,7 @@
-import { CheckCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 
 export default function QuestionCard({ data, onAnswer, totalQuestions, currentIndex }) {
+  // Decode HTML entities (misal &quot; -> ")
   const decodeHTML = (html) => {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -8,29 +9,30 @@ export default function QuestionCard({ data, onAnswer, totalQuestions, currentIn
   };
 
   return (
-    <div className="w-full max-w-2xl animate-fade-in">
-      <div className="mb-6 flex items-center justify-between text-sm font-medium text-gray-500">
-        <span>Question {currentIndex + 1} of {totalQuestions}</span>
-        <span className="flex items-center gap-1 text-emerald-600">
-          <CheckCircle size={16} /> Single Choice
-        </span>
+    <div className="w-full max-w-3xl animate-fade-in">
+      {/* Meta Info */}
+      <div className="flex items-center gap-2 mb-6 text-emerald-600 font-medium bg-emerald-50 w-fit px-3 py-1 rounded-full text-xs md:text-sm border border-emerald-100">
+        <HelpCircle size={14} />
+        <span>Pertanyaan {currentIndex + 1} dari {totalQuestions}</span>
       </div>
 
-      <h2 className="mb-8 text-xl font-bold leading-relaxed text-gray-800 md:text-2xl">
+      {/* Pertanyaan */}
+      <h2 className="text-xl md:text-3xl font-bold text-gray-900 leading-snug mb-8">
         {decodeHTML(data.question)}
       </h2>
 
-      <div className="grid gap-4">
+      {/* Options Grid */}
+      <div className="grid grid-cols-1 gap-3 md:gap-4">
         {data.options.map((option, idx) => (
           <button
             key={idx}
             onClick={() => onAnswer(option)}
-            className="group flex w-full items-center justify-between rounded-xl border-2 border-gray-200 bg-white p-4 text-left font-medium text-gray-700 transition-all hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-md active:scale-[0.98]"
+            className="group relative flex w-full items-center gap-4 p-4 md:p-5 text-left rounded-2xl border-2 border-gray-100 bg-white hover:border-emerald-500 hover:bg-emerald-50/30 transition-all duration-200 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
           >
-            <span className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-500 transition-colors group-hover:bg-emerald-200 group-hover:text-emerald-700">
-                {String.fromCharCode(65 + idx)}
-              </span>
+            <span className="flex h-8 w-8 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-xs md:text-sm font-bold text-gray-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+              {String.fromCharCode(65 + idx)}
+            </span>
+            <span className="text-sm md:text-lg font-medium text-gray-700 group-hover:text-emerald-900">
               {decodeHTML(option)}
             </span>
           </button>

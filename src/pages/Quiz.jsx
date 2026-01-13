@@ -2,91 +2,102 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuiz } from "../context/QuizContext";
 import QuestionCard from "../components/QuestionCard";
-import { Clock, Loader2 } from "lucide-react";
+import { Clock, Loader2, AlertCircle } from "lucide-react";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
 export default function Quiz() {
   const { user, quizState, startQuiz, answerQuestion, loading, error } = useQuiz();
   const navigate = useNavigate();
 
-  const title = quizState.questions.length > 0 
-    ? `Question ${quizState.currentIndex + 1}/${quizState.questions.length} | Time: ${quizState.timeLeft}s` 
-    : "Loading Quiz...";
-    
-  useDocumentTitle(title);
+  const currentQNum = quizState.currentIndex + 1;
+  const totalQ = quizState.questions.length;
+  
+  useDocumentTitle(`Soal ${currentQNum} dari ${totalQ} | DOT Quiz`);
 
-  // Proteksi Halaman
   useEffect(() => {
     if (!user) navigate("/");
   }, [user, navigate]);
 
-  // Fetch / Resume Logic
   useEffect(() => {
     if (user && quizState.status === 'idle') {
       startQuiz();
     }
   }, [user, quizState.status]);
 
-  // Cek Finish
+  // FIX: Tambahkan pengecekan !loading agar tidak redirect saat fetch ulang
   useEffect(() => {
-    if (quizState.isFinished) {
+    if (!loading && quizState.isFinished) {
       navigate("/result");
     }
-  }, [quizState.isFinished, navigate]);
+  }, [quizState.isFinished, loading, navigate]);
 
-  // Loading Screen (Tema Hijau)
-  if (loading || !quizState.questions.length) {
+  // --- LOADING STATE ---
+  if (loading || !totalQ) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
         <Loader2 size={48} className="animate-spin text-emerald-600 mb-4" />
-        <p className="text-gray-500 animate-pulse">Menyiapkan soal untukmu, {user?.name}...</p>
+        <p className="text-gray-500 font-medium animate-pulse">Menyiapkan pertanyaan...</p>
       </div>
     );
   }
 
-  // Error Screen
+  // --- ERROR STATE ---
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 text-center">
-        <div className="max-w-md p-6">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button onClick={() => window.location.reload()} className="px-4 py-2 bg-emerald-600 text-white rounded-lg">Coba Lagi</button>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl text-center border border-red-100">
+          <AlertCircle size={40} className="mx-auto text-red-500 mb-4" />
+          <h3 className="text-lg font-bold text-gray-900 mb-2">Terjadi Kesalahan</h3>
+          <p className="text-gray-500 mb-6">{error}</p>
+          <button onClick={() => window.location.reload()} className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold">
+            Coba Lagi
+          </button>
         </div>
       </div>
     );
   }
 
   const currentQuestion = quizState.questions[quizState.currentIndex];
+  const progressPercent = (currentQNum / totalQ) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-8">
-      {/* Header Bersih (Tanpa Logout) */}
-      <div className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md shadow-sm z-10 border-b border-emerald-100">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-          
-          {/* User Info */}
+    <div className="min-h-screen bg-gray-50 pb-20 pt-24 md:pt-28">
+      {/* HEADER */}
+      <div className="fixed top-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div className="container mx-auto px-4 max-w-4xl h-16 md:h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-linear-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center font-bold shadow-sm">
+            <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm md:text-base">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
-            <span className="font-bold text-gray-700">{user?.name}</span>
+            <div>
+              <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">Player</p>
+              <p className="text-sm md:text-base font-bold text-gray-800 leading-none truncate max-w-25 md:max-w-xs">{user?.name}</p>
+            </div>
           </div>
 
-          {/* Timer */}
-          <div className={`flex items-center gap-2 rounded-full px-4 py-2 font-mono font-bold transition-colors shadow-sm border border-gray-100 ${quizState.timeLeft < 10 ? "bg-red-50 text-red-600 animate-pulse border-red-200" : "bg-emerald-50 text-emerald-600 border-emerald-200"}`}>
-            <Clock size={18} />
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border font-mono font-bold transition-colors ${
+            quizState.timeLeft <= 10 ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-gray-100 text-gray-700 border-transparent'
+          }`}>
+            <Clock size={16} />
             <span>{quizState.timeLeft}s</span>
           </div>
         </div>
+
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-100">
+          <div 
+            className="h-full bg-linear-to-r from-emerald-400 to-emerald-600 transition-all duration-500 ease-out"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="mt-20 flex justify-center">
+      {/* CONTENT */}
+      <div className="container mx-auto px-4 md:px-6 flex justify-center">
         {currentQuestion && (
           <QuestionCard
             data={currentQuestion}
             currentIndex={quizState.currentIndex}
-            totalQuestions={quizState.questions.length}
+            totalQuestions={totalQ}
             onAnswer={answerQuestion}
           />
         )}
