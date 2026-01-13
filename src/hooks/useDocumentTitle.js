@@ -1,15 +1,15 @@
 import { useEffect } from "react";
 
-/**
- * Custom Hook untuk mengubah judul tab browser secara dinamis.
- * @param {string} title - Judul yang ingin ditampilkan
- */
+// Custom hook untuk update judul browser tab secara dinamis
 export default function useDocumentTitle(title) {
   useEffect(() => {
+    // Simpan judul sebelumnya
     const prevTitle = document.title;
+    
+    // Update judul baru
     document.title = title;
 
-    // Cleanup: Kembalikan judul semula saat komponen di-unmount (opsional)
+    // Cleanup: kembalikan judul lama saat unmount
     return () => {
       document.title = prevTitle;
     };

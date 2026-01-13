@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuiz } from "../context/QuizContext";
-import { User, Sparkles, ArrowRight, BrainCircuit, Zap } from "lucide-react";
+import { User, ArrowRight, BrainCircuit, Zap } from "lucide-react";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
+// Halaman login untuk input nama user
 export default function Login() {
   const [name, setName] = useState("");
   const { login, user } = useQuiz();
@@ -15,6 +16,7 @@ export default function Login() {
     if (user) navigate("/quiz");
   }, [user, navigate]);
 
+  // Submit form login
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -24,24 +26,15 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen w-full bg-white">
-      
-      {/* --- BAGIAN KIRI (DESKTOP VISUAL) --- */}
-      {/* Menggunakan width 50% (lg:w-1/2) atau 60% (xl:w-7/12) untuk tampilan lebih dominan */}
       <div className="relative hidden lg:flex w-1/2 xl:w-7/12 flex-col justify-between bg-emerald-950 px-16 py-20 text-white overflow-hidden">
-        
-        {/* Dekorasi Background Abstrak */}
         <div className="absolute top-0 right-0 h-150 w-150 translate-x-1/3 -translate-y-1/4 rounded-full bg-emerald-500/20 blur-[100px]"></div>
         <div className="absolute bottom-0 left-0 h-125 w-125 -translate-x-1/4 translate-y-1/4 rounded-full bg-teal-600/20 blur-[100px]"></div>
-        
-        {/* Konten Atas: Logo/Brand Kecil */}
         <div className="relative z-10 flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-emerald-400 to-teal-600 shadow-lg shadow-emerald-500/30">
             <BrainCircuit className="text-white" size={20} />
           </div>
           <span className="text-xl font-bold tracking-tight text-white">DOT Quiz</span>
         </div>
-
-        {/* Konten Tengah: Headline Besar */}
         <div className="relative z-10 max-w-2xl">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-800/30 px-4 py-2 text-sm font-medium backdrop-blur-md text-emerald-100">
             <Zap size={16} className="fill-yellow-400 text-yellow-400" />
@@ -58,12 +51,10 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Konten Bawah: Footer/Quote */}
         <div className="relative z-10 text-sm text-emerald-200/60 font-medium">
           &copy; 2026 DOT Quiz App. Designed for Performance.
         </div>
       </div>
-
 
       {/* --- BAGIAN KANAN (FORM LOGIN) --- */}
       <div className="flex w-full flex-col justify-center items-center bg-gray-50 px-6 py-12 lg:w-1/2 xl:w-5/12 lg:bg-white lg:px-20">

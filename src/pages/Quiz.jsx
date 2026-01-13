@@ -5,10 +5,12 @@ import QuestionCard from "../components/QuestionCard";
 import { Clock, Loader2, AlertCircle } from "lucide-react";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
+// Halaman utama quiz untuk menjawab pertanyaan
 export default function Quiz() {
   const { user, quizState, startQuiz, answerQuestion, loading, error } = useQuiz();
   const navigate = useNavigate();
 
+  // Hitung nomor pertanyaan saat ini
   const currentQNum = quizState.currentIndex + 1;
   const totalQ = quizState.questions.length;
   
@@ -30,7 +32,7 @@ export default function Quiz() {
     }
   }, [quizState.isFinished, loading, navigate]);
 
-  // --- LOADING STATE ---
+  // Tampilkan loading saat fetch pertanyaan
   if (loading || !totalQ) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
@@ -40,7 +42,7 @@ export default function Quiz() {
     );
   }
 
-  // --- ERROR STATE ---
+  // Tampilkan error jika API gagal
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
@@ -61,7 +63,7 @@ export default function Quiz() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 pt-24 md:pt-28">
-      {/* HEADER */}
+      {/* Header dengan nama user dan timer */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200">
         <div className="container mx-auto px-4 max-w-4xl h-16 md:h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -90,7 +92,7 @@ export default function Quiz() {
         </div>
       </div>
 
-      {/* CONTENT */}
+      {/* Tampilkan pertanyaan */}
       <div className="container mx-auto px-4 md:px-6 flex justify-center">
         {currentQuestion && (
           <QuestionCard

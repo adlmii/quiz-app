@@ -2,65 +2,120 @@ import { createContext, useContext, useState, useEffect, useRef, useCallback } f
 import { getQuestions } from "../services/api"; 
 import { QUIZ_DURATION } from "../utils/constants";
 
+// Context untuk state management quiz
 const QuizContext = createContext();
+
+// Fungsi utility untuk shuffle array
 const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
 
 export const QuizProvider = ({ children }) => {
+  // State user
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Ref untuk prevent fetch duplikat
   const isFetchingRef = useRef(false);
 
-  // State Utama Kuis
+  // State untuk mengontrol semua aspek quiz
   const [quizState, setQuizState] = useState({
     questions: [],
     currentIndex: 0,
     score: 0,
     answers: [], 
     timeLeft: QUIZ_DURATION,
+    endTime: null,
     isFinished: false,
     status: 'idle', 
   });
 
+  // Ambil data dari localStorage saat mount
   useEffect(() => {
     const savedUser = localStorage.getItem("quizUser");
     const savedQuiz = localStorage.getItem("quizState");
+    
     if (savedUser) setUser(JSON.parse(savedUser));
-    if (savedQuiz) setQuizState(JSON.parse(savedQuiz));
+    
+    if (savedQuiz) {
+      const parsedQuiz = JSON.parse(savedQuiz);
+      
+      if (parsedQuiz.status === 'playing' && parsedQuiz.endTime) {
+        const remainingTime = Math.ceil((parsedQuiz.endTime - Date.now()) / 1000);
+        
+        if (remainingTime <= 0) {
+          setQuizState({ ...parsedQuiz, timeLeft: 0, isFinished: true, status: 'finished' });
+        } else {
+          setQuizState({ ...parsedQuiz, timeLeft: remainingTime });
+        }
+      } else {
+        setQuizState(parsedQuiz);
+      }
+    }
   }, []);
 
+  // Simpan state quiz ke localStorage setiap ada perubahan
   useEffect(() => {
     if (quizState.status !== 'idle') {
       localStorage.setItem("quizState", JSON.stringify(quizState));
     }
-  }, [quizState]);
+  }, [
+    quizState.status, 
+    quizState.questions, 
+    quizState.currentIndex, 
+    quizState.score, 
+    quizState.answers, 
+    quizState.isFinished,
+    quizState.endTime 
+  ]);
 
+  // Menyelesaikan quiz
+  const finishQuiz = useCallback(() => {
+    setQuizState((prev) => ({ ...prev, isFinished: true, status: 'finished', timeLeft: 0 }));
+  }, []);
+
+  // Countdown timer untuk quiz
   useEffect(() => {
-    if (quizState.status === 'playing' && quizState.timeLeft > 0) {
+    if (quizState.status === 'playing' && quizState.endTime) {
       const timer = setInterval(() => {
-        setQuizState((prev) => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
-      }, 1000);
-      return () => clearInterval(timer);
-    } else if (quizState.timeLeft === 0 && quizState.status === 'playing') {
-      finishQuiz();
-    }
-  }, [quizState.timeLeft, quizState.status]);
+        const now = Date.now();
+        const remaining = Math.ceil((quizState.endTime - now) / 1000);
 
+        if (remaining <= 0) {
+          clearInterval(timer);
+          finishQuiz();
+        } else {
+          setQuizState((prev) => ({ ...prev, timeLeft: remaining }));
+        }
+      }, 500);
+
+      return () => clearInterval(timer);
+    }
+  }, [quizState.status, quizState.endTime, finishQuiz]);
+
+  // Fetch dan format pertanyaan dari API
   const fetchQuestions = useCallback(async () => {
+    // Ambil pertanyaan dari API
     const rawQuestions = await getQuestions();
 
+    // Format pertanyaan: decode HTML dan shuffle opsi
     const formattedQuestions = rawQuestions.map((q) => ({
       question: q.question,
       correct_answer: q.correct_answer,
       options: shuffleArray([q.correct_answer, ...q.incorrect_answers]),
     }));
 
+    // Hitung waktu akhir quiz
+    const now = Date.now();
+    const endTime = now + QUIZ_DURATION * 1000;
+
+    // Set state awal quiz
     setQuizState({
       questions: formattedQuestions,
       currentIndex: 0,
       score: 0,
       answers: [],
       timeLeft: QUIZ_DURATION,
+      endTime: endTime,
       isFinished: false,
       status: 'playing',
     });
@@ -69,6 +124,7 @@ export const QuizProvider = ({ children }) => {
     isFetchingRef.current = false;
   }, []);
 
+  // Mulai quiz baru
   const startQuiz = useCallback(async () => {
     if (quizState.questions.length > 0 && !quizState.isFinished) return;
 
@@ -102,6 +158,7 @@ export const QuizProvider = ({ children }) => {
     }
   }, [quizState.questions.length, quizState.isFinished, fetchQuestions]);
 
+  // Submit jawaban user untuk pertanyaan saat ini
   const answerQuestion = (selectedOption) => {
     const currentQ = quizState.questions[quizState.currentIndex];
     const isCorrect = selectedOption === currentQ.correct_answer;
@@ -126,16 +183,14 @@ export const QuizProvider = ({ children }) => {
     });
   };
 
-  const finishQuiz = () => {
-    setQuizState((prev) => ({ ...prev, isFinished: true, status: 'finished' }));
-  };
-
+  // Login user
   const login = (name) => {
     const userData = { name };
     setUser(userData);
     localStorage.setItem("quizUser", JSON.stringify(userData));
   };
 
+  // Logout user dan reset state
   const logout = () => {
     setUser(null);
     setQuizState({ 
@@ -143,7 +198,8 @@ export const QuizProvider = ({ children }) => {
         currentIndex: 0, 
         score: 0, 
         answers: [], 
-        timeLeft: QUIZ_DURATION, // FIX: Pakai konstanta
+        timeLeft: QUIZ_DURATION, 
+        endTime: null,
         isFinished: false, 
         status: 'idle' 
     });
@@ -152,6 +208,7 @@ export const QuizProvider = ({ children }) => {
     isFetchingRef.current = false; 
   };
 
+  // Provide semua nilai ke context
   return (
     <QuizContext.Provider value={{ user, quizState, loading, error, login, logout, startQuiz, answerQuestion }}>
       {children}
@@ -159,4 +216,5 @@ export const QuizProvider = ({ children }) => {
   );
 };
 
+// Custom hook untuk akses quiz context
 export const useQuiz = () => useContext(QuizContext);

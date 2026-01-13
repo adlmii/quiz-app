@@ -1,7 +1,8 @@
 import { HelpCircle } from "lucide-react";
 
+// Komponen untuk menampilkan satu pertanyaan dan opsi jawaban
 export default function QuestionCard({ data, onAnswer, totalQuestions, currentIndex }) {
-  // Decode HTML entities (misal &quot; -> ")
+  // Decode HTML entities dari API (misal &quot; menjadi ")
   const decodeHTML = (html) => {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -10,18 +11,18 @@ export default function QuestionCard({ data, onAnswer, totalQuestions, currentIn
 
   return (
     <div className="w-full max-w-3xl animate-fade-in">
-      {/* Meta Info */}
+      {/* Nomor pertanyaan */}
       <div className="flex items-center gap-2 mb-6 text-emerald-600 font-medium bg-emerald-50 w-fit px-3 py-1 rounded-full text-xs md:text-sm border border-emerald-100">
         <HelpCircle size={14} />
         <span>Pertanyaan {currentIndex + 1} dari {totalQuestions}</span>
       </div>
 
-      {/* Pertanyaan */}
+      {/* Teks pertanyaan */}
       <h2 className="text-xl md:text-3xl font-bold text-gray-900 leading-snug mb-8">
         {decodeHTML(data.question)}
       </h2>
 
-      {/* Options Grid */}
+      {/* Tombol opsi jawaban */}
       <div className="grid grid-cols-1 gap-3 md:gap-4">
         {data.options.map((option, idx) => (
           <button

@@ -20,12 +20,13 @@ export default function Result() {
   const { user, quizState, logout, startQuiz } = useQuiz();
   const navigate = useNavigate();
 
-  // --- LOGIKA HITUNGAN ---
+  // Hitung statistik hasil quiz
   const totalQuestions = quizState.questions.length;
   const totalAnswered = quizState.answers.length; 
   const correctAnswers = quizState.score;
   const wrongAnswers = totalAnswered - correctAnswers; 
   
+  // Hitung persentase skor
   const scorePercentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
 
   useDocumentTitle(`Hasil: ${scorePercentage}% | DOT Quiz`);
@@ -35,7 +36,7 @@ export default function Result() {
     else if (!quizState.isFinished) navigate("/quiz");
   }, [user, quizState.isFinished, navigate]);
 
-  // Konfigurasi UI (Warna & Icon)
+  // Tentukan warna, icon, dan teks berdasarkan skor
   const getResultUI = () => {
     if (scorePercentage === 100) return {
       title: "Sempurna!", 
@@ -69,10 +70,12 @@ export default function Result() {
 
   const ui = getResultUI();
 
+  // Logout dengan konfirmasi
   const handleLogout = () => {
     if(window.confirm("Keluar dari sesi ini?")) logout();
   };
 
+  // Main lagi - mulai quiz baru
   const handlePlayAgain = () => {
     startQuiz();
     navigate("/quiz");
@@ -81,27 +84,22 @@ export default function Result() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8 font-sans">
       
-      {/* CONTAINER UTAMA 
-          - Mobile: Flex Column (Atas Bawah)
-          - Desktop: Flex Row (Kiri Kanan) + Lebar Maksimal (max-w-5xl)
-      */}
+      {/* Container card utama */}
       <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-4xl bg-white shadow-2xl ring-1 ring-black/5 transition-all md:max-w-5xl md:flex-row md:min-h-125 animate-fade-in">
         
-        {/* =======================
-            SEKSI 1: VISUAL (KIRI di Desktop / ATAS di Mobile)
-            ======================= */}
+        {/* Bagian kiri: visual skor dan icon */}
         <div className={`relative flex flex-col items-center justify-center p-8 text-center text-white md:w-5/12 md:p-12 bg-linear-to-br ${ui.bgGradient}`}>
           
           {/* Dekorasi Background Abstrak */}
           <div className="absolute top-0 left-0 h-40 w-40 -translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-3xl"></div>
           <div className="absolute bottom-0 right-0 h-56 w-56 translate-x-10 translate-y-10 rounded-full bg-black/10 blur-3xl"></div>
           
-          {/* Icon Utama */}
+          {/* Icon hasil */}
           <div className="relative z-10 mb-6 animate-float">
             {ui.icon}
           </div>
 
-          {/* Skor Persentase */}
+          {/* Tampil skor dalam persen */}
           <div className="relative z-10">
             <h1 className="text-6xl font-black tracking-tighter md:text-7xl drop-shadow-sm">
               {scorePercentage}%
@@ -112,9 +110,7 @@ export default function Result() {
           </div>
         </div>
 
-        {/* =======================
-            SEKSI 2: STATS & ACTION (KANAN di Desktop / BAWAH di Mobile)
-            ======================= */}
+        {/* Bagian kanan: hasil dan tombol aksi */}
         <div className="flex flex-col justify-center bg-white p-6 md:w-7/12 md:p-12">
           
           <div className="mb-8 text-center md:text-left">
@@ -122,10 +118,10 @@ export default function Result() {
             <p className="text-gray-500 text-lg leading-relaxed">{ui.desc}</p>
           </div>
 
-          {/* GRID STATISTIK */}
+          {/* Statistik jawaban */}
           <div className="mb-10 grid grid-cols-3 gap-3 md:gap-6">
             
-            {/* 1. Total Dijawab */}
+            {/* Jumlah pertanyaan dijawab */}
             <div className="group flex flex-col items-center justify-center rounded-2xl bg-slate-50 p-4 border border-slate-100 transition-all hover:bg-slate-100 hover:shadow-md hover:-translate-y-1">
               <div className="mb-2 rounded-full bg-white p-2 shadow-sm">
                 <BarChart3 className="h-5 w-5 text-slate-500" />
@@ -136,7 +132,7 @@ export default function Result() {
               <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Dijawab</span>
             </div>
 
-            {/* 2. Benar */}
+            {/* Jumlah jawaban benar */}
             <div className="group flex flex-col items-center justify-center rounded-2xl bg-emerald-50 p-4 border border-emerald-100 transition-all hover:bg-emerald-100 hover:shadow-md hover:-translate-y-1">
               <div className="mb-2 rounded-full bg-white p-2 shadow-sm">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
@@ -145,7 +141,7 @@ export default function Result() {
               <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mt-1">Benar</span>
             </div>
 
-            {/* 3. Salah */}
+            {/* Jumlah jawaban salah */}
             <div className="group flex flex-col items-center justify-center rounded-2xl bg-rose-50 p-4 border border-rose-100 transition-all hover:bg-rose-100 hover:shadow-md hover:-translate-y-1">
               <div className="mb-2 rounded-full bg-white p-2 shadow-sm">
                 <XCircle className="h-5 w-5 text-rose-500" />
@@ -156,7 +152,7 @@ export default function Result() {
 
           </div>
 
-          {/* TOMBOL AKSI */}
+          {/* Tombol main lagi dan logout */}
           <div className="flex flex-col gap-3 sm:flex-row md:gap-4">
             <button
               onClick={handlePlayAgain}
@@ -175,7 +171,7 @@ export default function Result() {
             </button>
           </div>
 
-          {/* User ID Kecil */}
+          {/* Tampilkan nama user */}
           <div className="mt-8 text-center md:text-left">
             <p className="text-xs text-gray-400">
               Player ID: <span className="font-mono text-gray-600">{user?.name}</span>
