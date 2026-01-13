@@ -1,16 +1,64 @@
-# React + Vite
+# DOT Quiz App 🧠
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplikasi kuis interaktif berbasis **React 19** dan **Vite**, dikembangkan sebagai solusi *Technical Challenge*. Aplikasi ini mengintegrasikan API OpenTDB, manajemen state global, dan mekanisme persistensi data yang optimal.
 
-Currently, two official plugins are available:
+## ✨ Fitur Utama
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Sesuai dengan kriteria *requirements*:
 
-## React Compiler
+- ✅ **User Login:** Sistem input nama sederhana dengan proteksi rute (Route Protection).
+- ✅ **Dynamic Data:** Mengambil soal secara *real-time* dari [OpenTDB API](https://opentdb.com/).
+- ✅ **Global Timer:** Timer hitung mundur (default: 60 detik). Kuis otomatis selesai jika waktu habis.
+- ✅ **Smart Navigation:** Satu soal per halaman. Pindah otomatis setelah memilih jawaban.
+- ✅ **Result Analysis:** Menampilkan skor, jumlah benar, salah, dan total dijawab.
+- ✅ **Responsive UI:** Tampilan modern dan responsif (Mobile First) menggunakan Tailwind CSS v4.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🌟 Technical Highlights
 
-## Expanding the ESLint configuration
+- **Optimized Resume Mechanism:**
+  Menggunakan `localStorage` untuk menyimpan progres. User bisa menutup browser atau me-refresh halaman tanpa kehilangan progres (posisi soal, jawaban, dan sisa waktu).
+- **Performance Optimization:**
+  - **Anti-Thrashing:** State timer (`timeLeft`) *tidak* disimpan ke LocalStorage setiap detik untuk menghindari operasi *write* yang berlebihan.
+  - **Drift-Correction:** Menggunakan logika `Date.now()` dan `endTime` timestamp untuk menghitung sisa waktu, sehingga timer tetap akurat meskipun tab tidak aktif.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠️ Tech Stack
+
+- **Core:** [React 19](https://react.dev/), [Vite](https://vitejs.dev/)
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **Routing:** [React Router DOM v7](https://reactrouter.com/)
+- **HTTP Client:** [Axios](https://axios-http.com/)
+- **Icons:** [Lucide React](https://lucide.dev/)
+- **Package Manager:** pnpm
+
+## 🚀 Cara Menjalankan
+
+Pastikan Node.js sudah terinstal di komputer Anda.
+
+1. **Clone Repository**
+   ```bash
+   git clone [https://github.com/username-anda/dot-quiz-app.git](https://github.com/username-anda/dot-quiz-app.git)
+   cd dot-quiz-app
+   ```
+2. **Install Dependencies Proyek ini menggunakan (`pnpm`).**
+   ```bash
+   pnpm install
+
+   # atau jika menggunakan npm:
+   npm install
+   ```
+3. **Jalankan Development Server**
+   ```bash
+   pnpm run dev
+   ```
+   Buka (`http://localhost:5173`) di browser.
+
+## 📂 Struktur Proyek
+```
+src/
+├── components/     # Komponen UI (QuestionCard, dll)
+├── context/        # Global State (QuizContext) & Logic Timer
+├── hooks/          # Custom Hooks (useDocumentTitle)
+├── pages/          # Halaman Utama (Login, Quiz, Result)
+├── services/       # Konfigurasi API (Axios)
+└── utils/          # Konstanta & Helper functions
+```
