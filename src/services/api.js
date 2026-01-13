@@ -1,4 +1,5 @@
 import axios from "axios";
+import { TOTAL_QUESTIONS } from "../utils/constants";
 
 const API_URL = "https://opentdb.com/api.php";
 
@@ -7,7 +8,7 @@ export const getQuestions = async () => {
     // Request ke OpenTDB
     const response = await axios.get(API_URL, {
       params: {
-        amount: 10,
+        amount: TOTAL_QUESTIONS,
         type: "multiple",
       },
     });

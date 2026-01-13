@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { getQuestions } from "../services/api"; 
+import { QUIZ_DURATION } from "../utils/constants";
 
 const QuizContext = createContext();
 const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
@@ -16,7 +17,7 @@ export const QuizProvider = ({ children }) => {
     currentIndex: 0,
     score: 0,
     answers: [], 
-    timeLeft: 60, 
+    timeLeft: QUIZ_DURATION,
     isFinished: false,
     status: 'idle', 
   });
@@ -45,9 +46,30 @@ export const QuizProvider = ({ children }) => {
     }
   }, [quizState.timeLeft, quizState.status]);
 
-  // --- BAGIAN YANG DIPERBAIKI ---
-  const startQuiz = async () => {
-    // 1. Cek Resume (kalau soal ada & belum selesai, jangan reset)
+  const fetchQuestions = useCallback(async () => {
+    const rawQuestions = await getQuestions();
+
+    const formattedQuestions = rawQuestions.map((q) => ({
+      question: q.question,
+      correct_answer: q.correct_answer,
+      options: shuffleArray([q.correct_answer, ...q.incorrect_answers]),
+    }));
+
+    setQuizState({
+      questions: formattedQuestions,
+      currentIndex: 0,
+      score: 0,
+      answers: [],
+      timeLeft: QUIZ_DURATION,
+      isFinished: false,
+      status: 'playing',
+    });
+    
+    setLoading(false);
+    isFetchingRef.current = false;
+  }, []);
+
+  const startQuiz = useCallback(async () => {
     if (quizState.questions.length > 0 && !quizState.isFinished) return;
 
     if (isFetchingRef.current) return;
@@ -56,7 +78,6 @@ export const QuizProvider = ({ children }) => {
     setLoading(true);
     setError(null);
 
-    // FIX: Reset status SEGERA agar tidak mental balik ke Result page
     setQuizState(prev => ({ 
       ...prev, 
       isFinished: false, 
@@ -79,30 +100,7 @@ export const QuizProvider = ({ children }) => {
         }
       }, 2000);
     }
-  };
-
-  const fetchQuestions = async () => {
-    const rawQuestions = await getQuestions();
-
-    const formattedQuestions = rawQuestions.map((q) => ({
-      question: q.question,
-      correct_answer: q.correct_answer,
-      options: shuffleArray([q.correct_answer, ...q.incorrect_answers]),
-    }));
-
-    setQuizState({
-      questions: formattedQuestions,
-      currentIndex: 0,
-      score: 0,
-      answers: [],
-      timeLeft: 60,
-      isFinished: false,
-      status: 'playing',
-    });
-    
-    setLoading(false);
-    isFetchingRef.current = false;
-  };
+  }, [quizState.questions.length, quizState.isFinished, fetchQuestions]);
 
   const answerQuestion = (selectedOption) => {
     const currentQ = quizState.questions[quizState.currentIndex];
@@ -145,7 +143,7 @@ export const QuizProvider = ({ children }) => {
         currentIndex: 0, 
         score: 0, 
         answers: [], 
-        timeLeft: 60, 
+        timeLeft: QUIZ_DURATION, // FIX: Pakai konstanta
         isFinished: false, 
         status: 'idle' 
     });

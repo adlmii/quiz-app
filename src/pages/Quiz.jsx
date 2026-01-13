@@ -22,9 +22,8 @@ export default function Quiz() {
     if (user && quizState.status === 'idle') {
       startQuiz();
     }
-  }, [user, quizState.status]);
+  }, [user, quizState.status, startQuiz]);
 
-  // FIX: Tambahkan pengecekan !loading agar tidak redirect saat fetch ulang
   useEffect(() => {
     if (!loading && quizState.isFinished) {
       navigate("/result");
