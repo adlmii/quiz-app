@@ -156,7 +156,7 @@ export default function Result() {
           <div className="flex flex-col gap-3 sm:flex-row md:gap-4">
             <button
               onClick={handlePlayAgain}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-900 py-4 px-6 font-bold text-white shadow-xl shadow-gray-900/10 transition-all hover:bg-gray-800 hover:shadow-gray-900/20 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+              className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-4 px-6 font-bold text-white shadow-xl shadow-emerald-600/20 transition-all hover:bg-emerald-700 hover:shadow-emerald-600/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
             >
               <RefreshCw size={20} className="transition-transform group-hover:rotate-180" />
               <span>Main Lagi</span>
